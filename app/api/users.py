@@ -10,6 +10,7 @@ from app.api.auth import token_auth
 def get_user(id):
     return jsonify(User.query.get_or_404(id).to_dict())
 
+
 @bp.route('/users/<int:id>', methods=['PUT'])
 @token_auth.login_required
 def update_user(id):
@@ -25,6 +26,7 @@ def update_user(id):
     db.session.commit()
     return jsonify(user.to_dict())
 
+
 @bp.route('/users', methods=['GET'])
 @token_auth.login_required
 def get_users():
@@ -32,6 +34,7 @@ def get_users():
     per_page = min(request.args.get('per_page', 10, type=int), 100)
     data = User.to_collection_dict(User.query, page, per_page, 'api.get_users')
     return jsonify(data)
+
 
 @bp.route('/users', methods=['POST'])
 def create_user():

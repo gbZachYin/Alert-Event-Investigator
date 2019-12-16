@@ -8,7 +8,7 @@
             <td>
                 {% set user_link %}
                     <span class="user_popup">
-                        <a href="{{ url_for('main.user', username=post.author.username) }}">
+                        <a href="{{ url_for('main.user', username=post.author.username) }}" style="color: #DB7093;">
                             {{ post.author.username }}
                         </a>
                     </span>

@@ -1,12 +1,15 @@
 {% extends 'bootstrap/base.html' %}
 
-{% block title %}
-Alert Investigator
+
+{% block head %}
+<link rel="Icon" href="static/images/alert.png" type="image/x-icon" />
+<title>Alert Investigator</title>
+<link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block navbar %}
 <nav class="navbar navbar-default">
-    <div class="container">
+    <div class="container" style="background-color: #2e2e2e;width: auto;">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                 data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
@@ -15,20 +18,16 @@ Alert Investigator
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Alert Investigator</a>
+            <a class="navbar-brand" style="color: antiquewhite;" href="{{ url_for('main.index') }}">Alert
+                Investigator</a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a style="color: antiquewhite;" href="{{ url_for('main.about') }}">About</a></li>
+                <li><a style="color: antiquewhite;" href="{{ url_for('main.index') }}">Home</a></li>
+                <li><a style="color: antiquewhite;" href="{{ url_for('main.download') }}">Download</a></li>
             </ul>
-            {% if g.search_form %}
-            <form class="navbar-form navbar-left" method="get" action="{{ url_for('main.search') }}">
-                <div class="form-group">
-                    {{ g.search_form.q(size=20, class='form-control', placeholder=g.search_form.q.label.text) }}
-                </div>
-            </form>
-            {% endif %}
-            <ul class="nav navbar-nav navbar-right"></ul>
+            <!-- <ul class="nav navbar-nav navbar-right"></ul> -->
         </div>
     </div>
 </nav>
@@ -52,6 +51,7 @@ Alert Investigator
 {% block scripts %}
 {{ super() }}
 {{ moment.include_moment() }}
+
 <script>
     $(function () {
         var timer = null;

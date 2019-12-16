@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<h1>Export Alert Events</h1>
+<br>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="pull-right">
+            <div id="datepicker" name="datepicker" class="btn btn-outline-light">
+                <i class="fa fa-calendar"></i>&nbsp;
+                <span id="daterange"></span> <i class="fa fa-caret-down"></i>
+
+            </div>
+            <btn class="btn btn-default btn-sm graph_download" rel="tooltip" title="Generate Excel"
+                style="margin-left: 7px; background: #fff; border-width: 1px" onclick="jQuery:$('#btnsubmit').click()">
+                <i class="fa fa-table"></i>
+            </btn>
+        </div>
+        <div class="input-group btn-group pull">
+            <span class="input-group-addon">
+                <b class="glyphicon glyphicon-list-alt"></b>
+            </span>
+            <select id="selectinput" multiple="multiple">
+                <option value=1>App</option>
+                <option value=2>Host</option>
+                <option value=3>Partition</option>
+            </select>
+
+        </div>
+
+        <br>
+        <div class="page page-white" style="padding: 0">
+            <div id="myTableDiv">
+                <!-- <table class="table table-striped">
+                    <caption style="color: black; text-align:center;font-size:20px;">Output Preview</caption>
+                    <thead>
+                        <tr>
+                            <th class="header">Date</th>
+                            <th class="header">Type</th>
+                            <th class="header">Alert Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Tanmay</td>
+                            <td>Bangalore</td>
+                            <td>560001</td>
+                        </tr>
+                        <tr>
+                            <td>Sachin</td>
+                            <td>Mumbai</td>
+                            <td>400003</td>
+                        </tr>
+                        <tr>
+                            <td>Uma</td>
+                            <td>Pune</td>
+                            <td>411027</td>
+                        </tr>
+                    </tbody>
+                </table> -->
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+
+                <div class="message" style="text-align: center;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" style="width: 100%;">
+                        </div>
+                    </div>
+                    Your report is successfully generated! Click the button to download it.
+                </div>
+
+            </div>
+            <div>
+                <button id="btnsubmit" class="btn btn-primary" style="margin-top: 20px">
+                    Generate Excel
+                </button>
+
+                <a id="exportLink" style="display:none">
+                    <button id="btndownload" class="btn btn-primary pull-right" style="margin-top: 20px">
+                        <i class="fa fa-download"></i> &nbsp; Download Excel
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+<link rel="stylesheet" href={{ url_for('static', filename="css/bootstrap-multiselect.css")}} type="text/css">
+<script type="text/javascript" src={{ url_for('static', filename="js/bootstrap-multiselect.js")}}></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#selectinput').multiselect({
+            enableFiltering: true
+        });
+    });
+
+    var start = moment().subtract(29, 'days');
+    var end = moment();
+    var start_date = NaN;
+    var end_date = NaN;
+    var preview = '<div style="margin:0 auto; text-align: center; width: 80%; height: 300px; border:3px dashed rgb(133, 130, 130);">'
+        + '<div style="font-size: 40px;margin-top: 110px;color: rgb(100, 100, 100);">Preview Area</div>'
+        + '<div style="margin-top: 80px;color: rgb(100, 100, 100);">(Note: Only five rows of the output wil be displayed)</div></div>'
+    var noResult = '<div style="margin:0 auto; text-align: center; width: 80%; height: 300px; border:3px dashed rgb(133, 130, 130);">'
+        + '<div style="font-size: 40px;margin-top: 110px;color: rgb(100, 100, 100);">No Results Found</div>'
+        + '<div style="margin-top: 80px;color: rgb(100, 100, 100);">(Please change the type or the date range)</div></div>'
+
+    $(function () {
+
+        function cb(start, end) {
+            $('#datepicker span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            start_date = start
+            end_date = end
+            if ($("#selectinput").val().length != 0) $("#selectinput").change()
+            else $("#myTableDiv").html(preview);
+        }
+
+        $('#datepicker').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+
+        cb(start, end);
+    });
+
+    function createTable(queryResult) {
+        rows = queryResult
+        // rows.push(['1', "APP", 'EM'])
+        // rows.push(['2', "HOST", 'EMM'])
+        // rows.push(['3', "PARTITION", 'EMMM'])
+        // rows.push(['4', "APP", 'EMMMm'])
+        row_num = rows.length;
+
+        if (row_num == 0) return noResult
+
+        else {
+
+            typeMap = ['APP', 'HOST', 'PARTITION']
+
+            var table_start = '<table id="myTable" class="table table-striped"><caption style="color: black; text-align:center;font-size:20px;">Output Preview</caption>'
+                + '<thead><tr><th class="header">Date</th><th class="header">Type</th><th class="header">Alert Info</th></tr></thead><tbody>';
+            var table_body = '';
+            var table_end = '</tbody></table>';
+
+            for (var i = 0; i < row_num; i++) {
+                table_body += '<tr>'
+                table_body += '<td>' + rows[i].timestamp + '</td>'
+                table_body += '<td>' + typeMap[rows[i].user_id - 1] + '</td>'
+                table_body += '<td>' + rows[i].body + '</td>'
+                table += '</tr>'
+            }
+
+            var table = table_start + table_body + table_end
+            return table
+        }
+    }
+
+
+    $("#selectinput").change(function () {
+
+        $("#loading").hide()
+        $("#myTableDiv").html('');
+
+        if ($("#selectinput").val().length == 0) $("#myTableDiv").html(preview);
+
+        else {
+            $.ajax({
+                type: "POST",
+                url: "/download",
+                data: JSON.stringify(
+                    {
+                        from: start_date,
+                        to: end_date,
+                        type: $("#selectinput").val(),
+                        action: 'preview'
+                    }),
+                datatype: "json",
+                success: function (data) {
+                    console.log(data)
+                    var myTable = createTable(data);
+                    $("#myTableDiv").html(myTable);
+
+                },
+                error: function () {
+
+                }
+            });
+        }
+    });
+
+    $("#btnsubmit").click(function () {
+
+
+
+        if ($("#selectinput").val().length == 0) alert('Please set the alert type before generating!');
+
+        else {
+
+            if ($("#myTable").length == 0) alert('No alerts found. Please change the type or the date range!');
+
+            else {
+
+                $.ajax({
+                    type: "POST",
+                    url: "/download",
+                    async: false,
+                    data: JSON.stringify(
+                        {
+                            from: start_date,
+                            to: end_date,
+                            type: $("#selectinput").val(),
+                            action: 'export'
+                        }),
+                    datatype: "json",
+                    success: function (data) {
+                        $("#loading").show()
+                        $("#exportLink").show()
+                        $('#exportLink').attr('href', data);
+
+                    },
+                    error: function () {
+
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}
